@@ -127,69 +127,21 @@ If you are taking photos for an event that goes past midnight, you might want th
 The argument to the flag should be an integer between 0-23 corresponding to the hours of the day starting at midnight.
 
 # Automation
+## How to automatise this script?
+Access to your NAS with ssh, then clone this repository.
 
-*Note while sortphotos.py was written in a cross-platform way, the following instructions for automation are specific to OS X.  For other operating systems there are of course ways to schedule tasks or submit cron jobs, but I will leave that as an exercise for the reader.*
+* `ssh user@nas_ip`
+* `git clone https://github.com/JasonvanderStaaij/sortphotos.git`
 
-An an optional setup, I like to automate the process of moving my photos.  This can be accomplished simply on OS X using Launch Agents.  First edit the supplied plist file ``com.andrewning.sortphotos.plist`` in any text editor.  On line 10 enter the **full path** of where ``sortphotos.py`` is stored.  On line 12 enter the full path of your source directory (I use Dropbox to transfer photos from my phone to my computer).  One line 13 enter the full path of the destination top level directory (e.g., ``/Users/Me/Pictures``).  Finally, on line 16 you can change how often the script will run (in seconds).  I have it set to run once a day, but you can set it to whatever you like.
+Add a new cron job to run periodically the script
+* `sudo vi /etc/crontab`
+* `* * * * * root  python /var/services/homes/<user>/sortphotos/src/sortphotos.py --sort %Y --rename %Y_%m%d_%H%M /var/services/homes/<user>/upload /volume1/photo`
+* `sudo synoservice -restart crond`
 
-Now move the plist file to ``~/Library/LaunchAgents/``.  Switch to that directory and load it
+Replace **JasonvanderStaaij** by your git username.
+Replace **<user>** by your nas username.
 
-    $ launchctl load com.andrewning.sortphotos.plist
-
-That's it.  It will now run once a day automatically (or to whatever internal you picked).  Of course if there are no pictures in the source folder the script does nothing and will check again at the next interval.  There are ways to use folder listeners instead of a time-based execution, but this script is so lightweight the added complexity is unwarranted.  If you want to make sure your service is scheduled, execute
-
-    $ launchctl list | grep sortphotos
-
-and you should see the Agent listed (I grep the results because you will typically have many services running).  If you want to stop the script from running anymore just unload it.
-
-    $ launchctl unload com.andrewning.sortphotos.plist
-
-# Acknowledgments
-
-SortPhotos grabs EXIF data from the photos/videos using the very excellent [ExifTool](http://www.sno.phy.queensu.ca/~phil/exiftool/) written by Phil Harvey.
-
-# ChangeLog (of major changes)
-
-### 7/17/2015
-
-- @nueh fix for Python 2.5 (which you might be stuck with on a NAS for example).  
-- bug fixes (ignore hidden files, ignore dates with only time but no date)
-
-### 5/9/2015
-
-- Windows compatibility fix (thanks PaulRobson)
-- added setup script (thanks josephholsten)
-- ignore GPS time stamps (thanks egallen for finding error)
-- fix for non-ascii file names (thanks maxsl for finding error)
-
-### 11/28/2014
-
-Another complete rewrite.  The script retains the powerful metadata reading capabilities of ExifTool but now uses its own file processing as it did before for more flexibility.  Specifying what tags to look for required some guesswork, so this version automates this by looking through tags for the oldest date.  Restrictions can be set on what groups/tags to search across.  Some flags have changed.  Sees rest of README.
-
-Main Changes
-
-- better automatic tag searching.  Now automatically finds tags with date information and looks for the oldest.  Lots of options for what groups/tags to restrict search to
-- duplicates can now be automatically removed (only if name is exactly the same and a file hash is exactly the same).
-- ``--day-begins`` feature is added back in
-- much more information is reported during processing
-
-### 11/15/2014
-
-The version is a complete overhaul of the past script.  It now makes use of the excellent ExifTool by Phil Harvey, which amongst other things gives us the ability to read EXIF or other metadata for a [wide range of file types](http://www.sno.phy.queensu.ca/~phil/exiftool/#supported).  Before we were limited primarily to jpg and a few other image types, but now most video formats are included as well as a wide range of RAW file types.  ExifTool also provides a lot of the file moving functionality that was previously contained in this tool so sortphotos.py is much simpler and has a few new capabilities.  There are a few features that were in sortphotos.py that have been left out  in this new version.  Because we are taking advantage of implementation features in ExifTool to handle the file management, we gained some capabilities but also lost some.  Missing features are detailed below and may be re-added in the future.  The usage of the script, while very similar to how it was before, is not perfectly backwards compatible.  If one of the critical features for you is missing then you shouldn't update at this time.  If you are using sortphotos.py in other automated scripts then you should update those to conform to the new usage.
-
-Main changes
-
-- EXIF data can be extracted for a huge number of file types, including videos
-- automatic file renaming is supported
-- the source directory can now be searched non-recursively, and that is in fact the default now
-- by default the script moves rather than copies (behavior was reversed before)
-- more descriptive information is given on where the files are going
-- a test option allows you to simulate what will happen when you run the script without actually moving/copying any files
-
-Previous features that were in sortphotos.py but have not yet been reincorporated into the new version
-
-- Duplicates are not automatically removed.  Before if two files were exactly the same (through a hash) one would be removed.  The new version does not remove any files.  If two files have the same name it will not overwrite but will append a number at the end.
-- the --day-begins feature is not included.  Before you could specify an hour that you wanted the day to start so you could group early morning photos with the previous day, but because of the way things are currently implemented this was not straightforward to add back in.
+This rule will launch the script every minute using as source folder /volume1/Download/images_temp and /volume1/photo as target.
 
 # License
 

@@ -139,7 +139,7 @@ Add a new cron job to run periodically the script
 * `sudo synoservice -restart crond`
 
 Replace **JasonvanderStaaij** by your git username.
-Replace **<user>** by your nas username.
+Replace **\<user\>** by your nas username.
 
 This rule will launch the script every minute using as source folder /volume1/Download/images_temp and /volume1/photo as target.
 

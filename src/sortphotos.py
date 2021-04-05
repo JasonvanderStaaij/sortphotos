@@ -111,6 +111,26 @@ def parse_date_exif(date_string):
     return date
 
 
+def removeEmptyFolders(path, removeRoot=True):
+  'Function to remove empty folders'
+  if not os.path.isdir(path):
+    return
+
+  # remove empty subfolders
+  files = os.listdir(path)
+  if len(files):
+    for f in files:
+      fullpath = os.path.join(path, f)
+      if os.path.isdir(fullpath):
+        removeEmptyFolders(fullpath)
+
+  # if folder empty, delete it
+  files = os.listdir(path)
+  if len(files) == 0 and removeRoot:
+    print "Removing empty folder:", path
+    os.rmdir(path)
+    
+
 
 def get_oldest_timestamp(data, additional_groups_to_ignore, additional_tags_to_ignore, print_all_tags=False):
     """data as dictionary from json.  Should contain only time stamps except SourceFile"""
@@ -498,6 +518,8 @@ def main():
         args.copy, args.test, not args.keep_duplicates, args.day_begins,
         args.ignore_groups, args.ignore_tags, args.use_only_groups,
         args.use_only_tags, not args.silent, args.keep_filename)
+    
+    removeEmptyFolders(args.src_dir, False)
 
 if __name__ == '__main__':
     main()
